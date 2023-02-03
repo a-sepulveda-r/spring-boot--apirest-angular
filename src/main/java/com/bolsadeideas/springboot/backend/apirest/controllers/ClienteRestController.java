@@ -40,21 +40,6 @@ public class ClienteRestController {
 	}
 
 	@GetMapping("/clientes/{id}")
-	// <?> significa que ouede ser cualquier tipo de objeto
-	// Este es un controlador de REST en Spring que maneja solicitudes HTTP GET para
-	// la URL "/clientes/{id}". El método "show" tiene un parámetro @PathVariable
-	// Long id, que corresponde al id del cliente a buscar.
-
-	// El método utiliza el objeto "clienteService" para buscar el cliente
-	// correspondiente al id proporcionado. En caso de una excepción de acceso a
-	// datos (DataAccessException), se crea un mapa de respuesta con mensajes de
-	// error y se devuelve una respuesta HTTP 500
-	// (HttpStatus.INTERNAL_SERVER_ERROR).
-
-	// Si el cliente no se encuentra en la base de datos, se crea un mapa de
-	// respuesta con un mensaje correspondiente y se devuelve una respuesta HTTP 404
-	// (HttpStatus.NOT_FOUND). Si el cliente se encuentra correctamente, se devuelve
-	// una respuesta HTTP 200 (HttpStatus.OK) con el cliente en cuestión.
 	public ResponseEntity<?> show(@PathVariable Long id) {
 		Cliente cliente = null;
 		Map<String, Object> response = new HashMap<>();
