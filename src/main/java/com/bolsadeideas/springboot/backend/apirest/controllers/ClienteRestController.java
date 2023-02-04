@@ -1,5 +1,6 @@
 package com.bolsadeideas.springboot.backend.apirest.controllers;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,6 +148,15 @@ public class ClienteRestController {
 		Map<String, Object> response = new HashMap<>();
 
 		try {
+			Cliente cliente = clienteService.findById(id);
+			String nombreFotoAnterior = cliente.getNombre();
+			if (nombreFotoAnterior != null && nombreFotoAnterior.length() > 0) {
+				Path rutaFotoAnterior = Paths.get("uploads").resolve(nombreFotoAnterior).toAbsolutePath();
+				File archivoFotoAnterior = rutaFotoAnterior.toFile();
+				if (archivoFotoAnterior.exists() && archivoFotoAnterior.canRead()) {
+					archivoFotoAnterior.delete();
+				}
+			}
 			clienteService.delete(id);
 
 		} catch (DataAccessException e) {
@@ -164,7 +175,7 @@ public class ClienteRestController {
 		Map<String, Object> response = new HashMap<>();
 		Cliente cliente = clienteService.findById(id);
 		if (!archivo.isEmpty()) {
-			String nombreArchivo = archivo.getOriginalFilename();
+			String nombreArchivo = UUID.randomUUID().toString() + "_" + archivo.getOriginalFilename().replace(" ", "");
 			Path rutaArchivo = Paths.get("uploads").resolve(nombreArchivo).toAbsolutePath();
 			try {
 				Files.copy(archivo.getInputStream(), rutaArchivo);
@@ -173,6 +184,14 @@ public class ClienteRestController {
 				response.put("mensaje", "Error al subir la imagen del cliente " + nombreArchivo);
 				response.put("error", e.getMessage().concat(": ").concat(e.getCause().getMessage()));
 				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			String nombreFotoAnterior = cliente.getNombre();
+			if (nombreFotoAnterior != null && nombreFotoAnterior.length() > 0) {
+				Path rutaFotoAnterior = Paths.get("uploads").resolve(nombreFotoAnterior).toAbsolutePath();
+				File archivoFotoAnterior = rutaFotoAnterior.toFile();
+				if (archivoFotoAnterior.exists() && archivoFotoAnterior.canRead()) {
+					archivoFotoAnterior.delete();
+				}
 			}
 			cliente.setFoto(nombreArchivo);
 			clienteService.save(cliente);
