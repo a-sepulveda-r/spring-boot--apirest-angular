@@ -37,7 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.bolsadeideas.springboot.backend.apirest.models.entity.Cliente;
 import com.bolsadeideas.springboot.backend.apirest.models.services.IClienteService;
 
-import jakarta.annotation.Resource;
+//import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 
 // aca se le da acceso al localhost de la aplicacion front
@@ -207,14 +207,13 @@ public class ClienteRestController {
 
 	}
 
-	@GetMapping("/uploads/img/{nombreFoto:.+}")
-	public ResponseEntity<Resource> verFoto(@PathVariable String nombreFoto) {
+	@GetMapping("uploads/img/{nombreFoto:.+}")
+	public ResponseEntity<UrlResource> verFoto(@PathVariable String nombreFoto) {
 		Path rutaArchivo = Paths.get("uploads").resolve(nombreFoto).toAbsolutePath();
-		Resource recurso = null;
+		UrlResource recurso = null;
 
 		try {
 			recurso = new UrlResource(rutaArchivo.toUri());
-
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
@@ -222,10 +221,11 @@ public class ClienteRestController {
 		if (!recurso.exists() && !recurso.isReadable()) {
 			throw new RuntimeException("Error no se pudo cargar la imagen: " + nombreFoto);
 		}
-		HttpHeaders cabecera = new HttpHeaders();
-		cabecera.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + recurso.getFilename() + "\"");
-		return new ResponseEntity<Resource>(recurso, HttpStatus.OK);
 
+		HttpHeaders cabecera = new HttpHeaders();
+		cabecera.add(HttpHeaders.CONTENT_DISPOSITION, "attachment;: filename=\"" + recurso.getFilename() + "\"");
+
+		return new ResponseEntity<UrlResource>(recurso, cabecera, HttpStatus.OK);
 	}
 
 }
