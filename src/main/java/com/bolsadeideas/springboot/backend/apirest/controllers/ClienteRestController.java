@@ -2,6 +2,7 @@ package com.bolsadeideas.springboot.backend.apirest.controllers;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,10 +13,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.UrlResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -34,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.bolsadeideas.springboot.backend.apirest.models.entity.Cliente;
 import com.bolsadeideas.springboot.backend.apirest.models.services.IClienteService;
 
+import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 
 // aca se le da acceso al localhost de la aplicacion front
@@ -149,7 +153,7 @@ public class ClienteRestController {
 
 		try {
 			Cliente cliente = clienteService.findById(id);
-			String nombreFotoAnterior = cliente.getNombre();
+			String nombreFotoAnterior = cliente.getFoto();
 			if (nombreFotoAnterior != null && nombreFotoAnterior.length() > 0) {
 				Path rutaFotoAnterior = Paths.get("uploads").resolve(nombreFotoAnterior).toAbsolutePath();
 				File archivoFotoAnterior = rutaFotoAnterior.toFile();
@@ -185,7 +189,7 @@ public class ClienteRestController {
 				response.put("error", e.getMessage().concat(": ").concat(e.getCause().getMessage()));
 				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-			String nombreFotoAnterior = cliente.getNombre();
+			String nombreFotoAnterior = cliente.getFoto();
 			if (nombreFotoAnterior != null && nombreFotoAnterior.length() > 0) {
 				Path rutaFotoAnterior = Paths.get("uploads").resolve(nombreFotoAnterior).toAbsolutePath();
 				File archivoFotoAnterior = rutaFotoAnterior.toFile();
@@ -200,6 +204,27 @@ public class ClienteRestController {
 
 		}
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+
+	}
+
+	@GetMapping("/uploads/img/{nombreFoto:.+}")
+	public ResponseEntity<Resource> verFoto(@PathVariable String nombreFoto) {
+		Path rutaArchivo = Paths.get("uploads").resolve(nombreFoto).toAbsolutePath();
+		Resource recurso = null;
+
+		try {
+			recurso = new UrlResource(rutaArchivo.toUri());
+
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+
+		if (!recurso.exists() && !recurso.isReadable()) {
+			throw new RuntimeException("Error no se pudo cargar la imagen: " + nombreFoto);
+		}
+		HttpHeaders cabecera = new HttpHeaders();
+		cabecera.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + recurso.getFilename() + "\"");
+		return new ResponseEntity<Resource>(recurso, HttpStatus.OK);
 
 	}
 
